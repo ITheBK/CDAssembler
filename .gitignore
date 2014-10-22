@@ -1,5 +1,5 @@
 #Java
-.class
+*.class
 #Netbeans
-.properties
-.xml
+*.properties
+*.xml
