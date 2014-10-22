@@ -359,6 +359,127 @@ public class EncodeInstruction
                 }
             } 
         }
+        /*---------------------------------MULTIPLE REGISTER TRANSFER INSTRUCTIONS------------------------------------------*/
+        else if((mnemonic.substring(0,3).equalsIgnoreCase("ldm"))||(mnemonic.substring(0,3).equalsIgnoreCase("stm")))
+        {
+            if(mnemonic.length()==7)
+                this.setConditionCode(mnemonic.substring(3,5),encoding);
+            if((mnemonic.substring(0,3)).equalsIgnoreCase("ldm"))
+            {
+                encoding[20]=1;//load bit
+                if((mnemonic.substring(3,5).equalsIgnoreCase("ib"))||(mnemonic.substring(3,5).equalsIgnoreCase("ed")))
+                {
+                    encoding[23]=1;
+                    encoding[24]=1;
+                }
+                if((mnemonic.substring(3,5).equalsIgnoreCase("ia"))||(mnemonic.substring(3,5).equalsIgnoreCase("fd")))
+                {
+                    encoding[23]=1;
+                    encoding[24]=0;
+                }
+                if((mnemonic.substring(3,5).equalsIgnoreCase("db"))||(mnemonic.substring(3,5).equalsIgnoreCase("ea")))
+                {
+                    encoding[23]=0;
+                    encoding[24]=1;
+                }
+                if((mnemonic.substring(3,5).equalsIgnoreCase("da"))||(mnemonic.substring(3,5).equalsIgnoreCase("fa")))
+                {
+                    encoding[23]=0;
+                    encoding[24]=0;
+                }
+            }
+            if((mnemonic.substring(0,3)).equalsIgnoreCase("stm"))
+            {
+                encoding[20]=0;//bit for store
+                if((mnemonic.substring(3,5).equalsIgnoreCase("ib"))||(mnemonic.substring(3,5).equalsIgnoreCase("fa")))
+                {
+                    encoding[23]=1;
+                    encoding[24]=1;
+                }
+                if((mnemonic.substring(3,5).equalsIgnoreCase("ia"))||(mnemonic.substring(3,5).equalsIgnoreCase("ea")))
+                {
+                    encoding[23]=1;
+                    encoding[24]=0;
+                }
+                if((mnemonic.substring(3,5).equalsIgnoreCase("db"))||(mnemonic.substring(3,5).equalsIgnoreCase("fd")))
+                {
+                    encoding[23]=0;
+                    encoding[24]=1;
+                }
+                if((mnemonic.substring(3,5).equalsIgnoreCase("da"))||(mnemonic.substring(3,5).equalsIgnoreCase("ed")))
+                {
+                    encoding[23]=0;
+                    encoding[24]=0;
+                }
+            }
+            String ops[]=operands.split(",");
+            if(ops[0].contains("!"))
+                encoding[21]=1;
+            this.encodeRegisterBinary(ops[0].substring(0,3), 16, encoding);
+            this.encodeRegisterListBinary(ops[1].substring(1,ops[1].length()-1),encoding);
+            encoding[27]=1;
+        }
+        /*---------------------------------STATUS REGISTER TO GENERAL REGISTER TRANSFER INSTRUCTIONS------------------------*/
+        else if(mnemonic.substring(0,3).equalsIgnoreCase("mrs"))
+        {
+            if(mnemonic.length()>3)
+            {
+                this.setConditionCode(mnemonic.charAt(3)+""+mnemonic.charAt(4), encoding);
+            }
+            String ops[] = operands.split(",");
+            this.encodeRegisterBinary(ops[0],12 , encoding);
+            if(ops[1].equalsIgnoreCase("cpsr"))
+                encoding[22]=0;
+            if(ops[1].equalsIgnoreCase("spsr"))
+                encoding[22]=1;
+            encoding[16]=1;
+            encoding[17]=1;
+            encoding[18]=1;
+            encoding[19]=1;
+            encoding[24]=1;
+        }
+        /*--------------------------------GENERAL REGISTER TO STATUS REGISTER TRANSFER INSTRUCTIONS--------------------------*/
+        else if(mnemonic.substring(0,3).equalsIgnoreCase("msr"))
+        {
+            if(mnemonic.length()>3)
+            {
+                this.setConditionCode(mnemonic.charAt(3)+""+mnemonic.charAt(4), encoding);
+            }
+            String ops[] = operands.split(",");
+            if(ops[0].matches("cpsr_.*")||ops[0].matches("CPSR_.*"))
+            {
+                encoding[22]=0;
+                String field[]=ops[0].split("_");
+                if(field[1]=="c")
+                    encoding[16]=1;
+                if(field[1]=="f")
+                    encoding[19]=1;
+            }
+            if(ops[0].matches("spsr_.*")||ops[0].matches("SPSR_.*"))
+            {
+                encoding[22]=1;
+                String field[]=ops[0].split("_");
+                if(field[1]=="c")
+                    encoding[16]=1;
+                if(field[1]=="f")
+                    encoding[19]=1;
+            }
+            if(ops[1].startsWith("#"))
+            {
+                encoding[25]=1;   //set bit to 25 for immediate operand
+                /*----CODE TO HANDLE IMMEDIATE OPERANDS-----*/    
+            }
+            if(ops[1].startsWith("r"))
+            {
+                 for(int i=4;i<12;i++)
+                     encoding[i]=0;
+                 this.encodeRegisterBinary(ops[1], 0, encoding);
+            }
+            encoding[24]=1;
+            encoding[21]=1;
+            for(int i=12;i<16;i++)
+                     encoding[i]=1;
+        }
         return encoding;
     }
     
@@ -414,6 +535,40 @@ public class EncodeInstruction
     {
         //method to get athe absolute value from a string example from 0x02(hex) or 23(int)
         return 0;
+    }
+    
+    public void encodeRegisterBinary(String reg,int pos, int[] encode)
+    {
+        String regNum = Integer.toBinaryString(Integer.parseInt(reg.split("r")[1]))+"";
+        int j=3;
+        for(int i=pos;i<pos+4;i++)
+        {
+            encode[i]=Integer.parseInt(regNum.charAt(j)+"");
+            j--;
+        }
+    }
+
+    public void encodeRegisterListBinary(String list, int[] encoding) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String regs[]=list.split(",");
+        for(int i=0;i<regs.length;i++)
+        {
+            if(regs[i].contains("-"))
+            {
+                String reg1[]=regs[0].split("-");
+                int start = Integer.parseInt(reg1[0].substring(1));
+                int end = Integer.parseInt(reg1[1].substring(1));
+                for(int j=start;j<end+1;j++)
+                    encoding[j]=1;
+            }
+            else
+                encoding[Integer.parseInt(regs[i].substring(1))]=1;
+        }
+        
+        if(!regs[1].equalsIgnoreCase("pc"))
+            encoding[Integer.parseInt(regs[1].substring(1))]=1;
+        if(regs[1].equalsIgnoreCase("pc"))
+            encoding[15]=1;
     }
 }
 
