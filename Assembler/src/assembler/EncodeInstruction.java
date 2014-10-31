@@ -16,6 +16,8 @@ public class EncodeInstruction
     public int[] encode(String instruction,int instructionAddress)
     {
         int[] encoding=new int[32];
+        int dpiNum = -1;
+        
         for(int i=0;i<encoding.length;i++)
         {
             encoding[i]=0;
@@ -83,7 +85,14 @@ public class EncodeInstruction
             this.addOffset(4,24,this.getAbsoluteValue(operands),encoding);
         }
         
-  /*--------------------Multiply Instructions------------------------------*/
+        /*----------------------------Data Processing-------------------------------*/
+        
+        else if((dpiNum=this.isDPI(mnemonic))!=-1)
+        {
+            this.encodeDPI(mnemonic, instructionAddress, encoding);
+        }
+        
+        /*--------------------Multiply Instructions------------------------------*/
         else if(mnemonic.substring(0,3).equalsIgnoreCase("mul"))
         {
             if(mnemonic.length()==4)
@@ -569,6 +578,37 @@ public class EncodeInstruction
             encoding[Integer.parseInt(regs[1].substring(1))]=1;
         if(regs[1].equalsIgnoreCase("pc"))
             encoding[15]=1;
+    }
+    
+    private int isDPI(String mnemonic)
+    {
+        if(mnemonic.length()!=3 && mnemonic.length()!=5 && mnemonic.length()!=6)
+        {
+            return -1;
+        }
+        String dpiMnemonics[] = {"and","eor","sub","rsb","add","adc","sbc","rsc","tst","teq","cmp","cmn","orr","mov","bic","mvn"};
+        for(int i=0;i<dpiMnemonics.length;i++)
+        {
+            if(mnemonic.substring(0, 3).equalsIgnoreCase(dpiMnemonics[i]))
+            {
+                return i;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+        return -1;
+    }
+    
+    private void encodeDPI(String mnemonic,int opCode,int[] encoding)
+    {
+        
+    }
+    
+    private void encodePositions(int number,int pos,int[] encoding)
+    {
+        String bin = Integer.toBinaryString(number);
     }
 }
 

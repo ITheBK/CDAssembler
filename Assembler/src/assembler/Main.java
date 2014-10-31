@@ -15,6 +15,9 @@ public class Main {
      */
     public static void main(String[] args) {
         System.out.println("hello".substring(0,3));
+        
+        String dpiMnemonics[] = {"and","eor","sub","rsb","add","adc","sbc","rsc","tst","teq","cmp","cmn","orr","mov","bic","mvn"};
+        System.out.println(Integer.toBinaryString(10));
         String regNum = Integer.toBinaryString(Integer.parseInt("r12".split("r")[1]))+"";
         System.out.println(regNum.charAt(2));
         int[] encode = {0,0,0,0,0,0,0,0,0,0};
