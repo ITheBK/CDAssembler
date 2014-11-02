@@ -90,6 +90,14 @@ public class EncodeInstruction
         else if((dpiNum=this.isDPI(mnemonic))!=-1)
         {
             this.encodeDPI(mnemonic, instructionAddress, encoding);
+            encoding[26]=encoding[27]=0;
+            String ops[] = operands.split(",");
+            if(ops.length == 3 && ops[2].trim().startsWith("#"))//2 registers with 32 bit immediate
+            {
+                String l[] = ops[2].split("\\W+");
+                this.getImmediateWithRotate(Integer.parseInt(l[1]));
+                this.encode32BitImmediate(ops[2], encoding);
+            }
         }
         
         /*--------------------Multiply Instructions------------------------------*/
@@ -542,7 +550,7 @@ public class EncodeInstruction
     
     public int getAbsoluteValue(String val)
     {
-        //method to get athe absolute value from a string example from 0x02(hex) or 23(int)
+        //method to get the absolute value from a string example from 0x02(hex) or 23(int)
         return 0;
     }
     
@@ -603,12 +611,59 @@ public class EncodeInstruction
     
     private void encodeDPI(String mnemonic,int opCode,int[] encoding)
     {
+        this.setConditionCode(mnemonic.substring(3, 5), encoding);
+        this.encodePositions(opCode, 21, 24, encoding);
+    }
+    
+    private void encodePositions(int number,int posS,int posE,int[] encoding)
+    {
+        String bin = Integer.toBinaryString(number);
+        for(int i=posE-posS,j=posS;i>=posS;i--,j++)
+        {
+            encoding[posS] = Integer.parseInt(bin.charAt(i)+"");
+        }
+    }
+    
+    private void getImmediateWithRotate(int val)
+    {
+        //Method implementing 32 bit immediate values with 8 bit space and 4 bit rotate
         
     }
     
-    private void encodePositions(int number,int pos,int[] encoding)
+    private void encode32BitImmediate(String value, int[] encoding)
     {
-        String bin = Integer.toBinaryString(number);
+        int val = this.getAbsoluteValue(value);
+        /**
+         * Have to do it for f000000f
+         */
+        if(Integer.highestOneBit(val)-Integer.lowestOneBit(val)>7)
+        {
+            System.out.println("!---------- ERROR: 32 bit value invalid ----------!");
+            System.exit(0);
+        }
+        
+        int leftmostOne = Integer.numberOfTrailingZeros(Integer.highestOneBit(val));
+        int rightmostOne = Integer.numberOfTrailingZeros(Integer.lowestOneBit(val));
+        int $8bitVal = Integer.parseInt((val+"").substring(Integer.lowestOneBit(val), Integer.highestOneBit(val)));
+        int diff = leftmostOne == rightmostOne? leftmostOne : rightmostOne - leftmostOne;
+        int shiftVal = 0;
+        /**
+         * 000000ff
+         * 00000ff0
+         * 0000ff00
+         * 000ff000
+         * 00ff0000
+         * 0ff00000
+         * ff000000
+         */
+        
+        for(int i=0;i<7;i++)
+        {
+            if()
+            {
+                
+            }
+        }
     }
 }
 
