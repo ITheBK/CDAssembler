@@ -646,7 +646,8 @@ public class EncodeInstruction
         int rightmostOne = Integer.numberOfTrailingZeros(Integer.lowestOneBit(val));
         int $8bitVal = Integer.parseInt((val+"").substring(Integer.lowestOneBit(val), Integer.highestOneBit(val)));
         int diff = leftmostOne == rightmostOne? leftmostOne : rightmostOne - leftmostOne;
-        int shiftVal = 0;
+        int shiftVal = -1;
+        int buffer = 0;
         /**
          * 000000ff
          * 00000ff0
@@ -659,9 +660,32 @@ public class EncodeInstruction
         
         for(int i=0;i<7;i++)
         {
-            if()
+            buffer = Integer.rotateLeft($8bitVal, i*4);
+            if(buffer == val)
             {
-                
+                shiftVal = i;
+            }
+        }
+        
+        if(shiftVal != -1)
+        {
+            String $8bit = Integer.toBinaryString($8bitVal);
+            String shiftString = Integer.toBinaryString(shiftVal);
+            int j = 7;
+            for(int i=0;i<8;i++,j--)
+            {
+                if($8bit.charAt(i) == '1')
+                {
+                    encoding[j] = 1;
+                }
+            }
+            j=11;
+            for(int i=0;i<4;i++)
+            {
+                if(shiftString.charAt(i) == '1')
+                {
+                    encoding[j] = 1;
+                }
             }
         }
     }
