@@ -15,6 +15,9 @@ public class Main {
      */
     public static void main(String[] args) {
         System.out.println("hello".substring(0,3));
+        System.out.println("11110000000000000000000000001111".substring(4, 28));
+        System.out.println("11110000000000000000000000001111".length());
+        
         int diff = Integer.numberOfTrailingZeros(Integer.highestOneBit(256))-Integer.numberOfTrailingZeros(Integer.lowestOneBit(255));
         System.out.println(diff>7);
         String dpiMnemonics[] = {"and","eor","sub","rsb","add","adc","sbc","rsc","tst","teq","cmp","cmn","orr","mov","bic","mvn"};

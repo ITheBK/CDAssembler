@@ -95,7 +95,6 @@ public class EncodeInstruction
             if(ops.length == 3 && ops[2].trim().startsWith("#"))//2 registers with 32 bit immediate
             {
                 String l[] = ops[2].split("\\W+");
-                this.getImmediateWithRotate(Integer.parseInt(l[1]));
                 this.encode32BitImmediate(ops[2], encoding);
             }
         }
@@ -624,11 +623,6 @@ public class EncodeInstruction
         }
     }
     
-    private void getImmediateWithRotate(int val)
-    {
-        //Method implementing 32 bit immediate values with 8 bit space and 4 bit rotate
-        
-    }
     
     private void encode32BitImmediate(String value, int[] encoding)
     {
@@ -636,55 +630,64 @@ public class EncodeInstruction
         /**
          * Have to do it for f000000f
          */
-        if(Integer.highestOneBit(val)-Integer.lowestOneBit(val)>7)
+        String valString = Integer.toBinaryString(val);
+        
+        if((Integer.highestOneBit(val)-Integer.lowestOneBit(val))>7 && valString.substring(4, 28).contains("1"))
         {
             System.out.println("!---------- ERROR: 32 bit value invalid ----------!");
             System.exit(0);
         }
-        
-        int leftmostOne = Integer.numberOfTrailingZeros(Integer.highestOneBit(val));
-        int rightmostOne = Integer.numberOfTrailingZeros(Integer.lowestOneBit(val));
-        int $8bitVal = Integer.parseInt((val+"").substring(Integer.lowestOneBit(val), Integer.highestOneBit(val)));
-        int diff = leftmostOne == rightmostOne? leftmostOne : rightmostOne - leftmostOne;
-        int shiftVal = -1;
-        int buffer = 0;
-        /**
-         * 000000ff
-         * 00000ff0
-         * 0000ff00
-         * 000ff000
-         * 00ff0000
-         * 0ff00000
-         * ff000000
-         */
-        
-        for(int i=0;i<7;i++)
+        else if((Integer.highestOneBit(val)-Integer.lowestOneBit(val))>7)
         {
-            buffer = Integer.rotateLeft($8bitVal, i*4);
-            if(buffer == val)
-            {
-                shiftVal = i;
-            }
+            long highest4bits = 4026531840l & (long)val;
+            long lowest4bits = 15l & (long)val;
         }
-        
-        if(shiftVal != -1)
+        else
         {
-            String $8bit = Integer.toBinaryString($8bitVal);
-            String shiftString = Integer.toBinaryString(shiftVal);
-            int j = 7;
-            for(int i=0;i<8;i++,j--)
+            int leftmostOne = Integer.numberOfTrailingZeros(Integer.highestOneBit(val));
+            int rightmostOne = Integer.numberOfTrailingZeros(Integer.lowestOneBit(val));
+            int $8bitVal = Integer.parseInt((val+"").substring(Integer.lowestOneBit(val), Integer.highestOneBit(val)));
+            int diff = leftmostOne == rightmostOne? leftmostOne : rightmostOne - leftmostOne;
+            int shiftVal = -1;
+            int buffer = 0;
+            /**
+             * 000000ff
+             * 00000ff0
+             * 0000ff00
+             * 000ff000
+             * 00ff0000
+             * 0ff00000
+             * ff000000
+             */
+
+            for(int i=0;i<7;i++)
             {
-                if($8bit.charAt(i) == '1')
+                buffer = Integer.rotateLeft($8bitVal, i*4);
+                if(buffer == val)
                 {
-                    encoding[j] = 1;
+                    shiftVal = i;
                 }
             }
-            j=11;
-            for(int i=0;i<4;i++)
+
+            if(shiftVal != -1)
             {
-                if(shiftString.charAt(i) == '1')
+                String $8bit = Integer.toBinaryString($8bitVal);
+                String shiftString = Integer.toBinaryString(shiftVal);
+                int j = 7;
+                for(int i=0;i<8;i++,j--)
                 {
-                    encoding[j] = 1;
+                    if($8bit.charAt(i) == '1')
+                    {
+                        encoding[j] = 1;
+                    }
+                }
+                j=11;
+                for(int i=0;i<4;i++)
+                {
+                    if(shiftString.charAt(i) == '1')
+                    {
+                        encoding[j] = 1;
+                    }
                 }
             }
         }
