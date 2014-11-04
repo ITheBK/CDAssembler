@@ -639,8 +639,25 @@ public class EncodeInstruction
         }
         else if((Integer.highestOneBit(val)-Integer.lowestOneBit(val))>7)
         {
-            long highest4bits = 4026531840l & (long)val;
-            long lowest4bits = 15l & (long)val;
+            String inter = Integer.toBinaryString(val);
+            while(inter.length()<32)
+            {
+                inter = 0+inter;
+            }
+            String highest4bits = inter.substring(0, 4);
+            String lowest4bits = inter.substring(28, 32);
+            int jt =3;
+            for(int i=0;i<4;i++)
+            {
+                encoding[jt] = highest4bits.charAt(i)-'0';
+            }
+            jt =7;
+            for(int i=0;i<4;i++)
+            {
+                encoding[jt] = lowest4bits.charAt(i)-'0';
+            }
+            
+            encoding[31] = 1;
         }
         else
         {

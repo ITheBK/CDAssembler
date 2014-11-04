@@ -15,9 +15,16 @@ public class Main {
      */
     public static void main(String[] args) {
         System.out.println("hello".substring(0,3));
-        System.out.println("11110000000000000000000000001111".substring(4, 28));
-        System.out.println("11110000000000000000000000001111".length());
-        
+        int val = 268435456;
+        String inter = Integer.toBinaryString(val);
+        while(inter.length()<32)
+        {
+            inter = 0+inter;
+        }
+        String highest4bits = inter.substring(0, 4);
+        String lowest4bits = inter.substring(28, 32);
+        System.out.println(highest4bits);
+        System.out.println(lowest4bits);
         int diff = Integer.numberOfTrailingZeros(Integer.highestOneBit(256))-Integer.numberOfTrailingZeros(Integer.lowestOneBit(255));
         System.out.println(diff>7);
         String dpiMnemonics[] = {"and","eor","sub","rsb","add","adc","sbc","rsc","tst","teq","cmp","cmn","orr","mov","bic","mvn"};
