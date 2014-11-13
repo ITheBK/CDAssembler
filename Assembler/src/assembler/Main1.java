@@ -19,7 +19,11 @@ public class Main1 {
         obj.firstPass();
         int[] arr=new EncodeInstruction().encode(obj.instructions.get(0), obj.addr[0]);
         for(int i=arr.length-1;i>=0;i--)
+        {
             System.out.print(arr[i]);
+            if(i%4==0)
+                System.out.println("");
+        }
 //        System.out.println("hello".substring(0,3));
 //        System.out.println("11110000000000000000000000001111".substring(4, 28));
 //        System.out.println("11110000000000000000000000001111".length());

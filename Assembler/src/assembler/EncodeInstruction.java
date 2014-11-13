@@ -4,8 +4,6 @@
  */
 package assembler;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author arvind
@@ -31,7 +29,6 @@ public class EncodeInstruction
             label = components[0];
             mnemonic = components[1];
             operands = components[2];
-            
         }
         else
         {
@@ -89,19 +86,67 @@ public class EncodeInstruction
         
         else if((dpiNum=this.isDPI(mnemonic))!=-1)
         {
-            this.encodeDPI(mnemonic, instructionAddress, encoding);
+            this.encodeDPI(mnemonic, dpiNum, encoding);
             encoding[26]=encoding[27]=0;
             String ops[] = operands.split(",");
             if(ops.length == 3 && ops[2].trim().startsWith("#"))//2 registers with 32 bit immediate
             {
                 String l[] = ops[2].split("\\W+");
+                encoding[25] = 1;
                 this.encode32BitImmediate(ops[2], encoding);
+                this.encodeRegisterBinary(ops[0], 12, encoding);
+                this.encodeRegisterBinary(ops[1], 16, encoding);
             }
-            if(ops.length==3)
+            else if(ops.length==3 && (ops[2].trim().startsWith("r") || ops[2].trim().startsWith("R")))
             {
-                System.out.println("3 address"+ops[0]);
-                this.encodeRegisterBinary(ops[0], 0, encoding);
+                this.encodeRegisterBinary(ops[0], 12, encoding);
+                this.encodeRegisterBinary(ops[1], 16, encoding);
+                this.encodeRegisterBinary(ops[2], 0, encoding);
             }
+            else if(ops.length==4)//with shift
+            {
+                this.encodeRegisterBinary(ops[0], 12, encoding);
+                this.encodeRegisterBinary(ops[1], 16, encoding);
+                this.encodeRegisterBinary(ops[2], 0, encoding);
+                /**
+                 * LSL - 00
+                 * LSR - 01
+                 * ASR - 10
+                 * ROR - 11
+                 */
+                String ar[] = ops[3].trim().split("\\s+");
+                if(ar[1].startsWith("#"))
+                {
+                    this.encodePositions(this.getAbsoluteValue(ar[1]),7,11,encoding);
+                }
+                else
+                {
+                    encoding[4] = 1;
+                    this.encodeRegisterBinary(ar[1], 8, encoding);
+                }
+                if(ar[0].equalsIgnoreCase("LSL"))//LSL
+                {
+                    encoding[6] = 0;
+                    encoding[5] = 0;
+                    
+                }
+                else if(ops[3].trim().split("\\s")[0].equalsIgnoreCase("LSR"))//LSR
+                {
+                    encoding[6] = 0;
+                    encoding[5] = 1;
+                }
+                else if(ops[3].trim().split("\\s")[0].equalsIgnoreCase("ASR"))//ASR
+                {
+                    encoding[6] = 1;
+                    encoding[5] = 0;
+                }
+                else if(ops[3].trim().split("\\s")[0].equalsIgnoreCase("ROR"))//ROR
+                {
+                    encoding[6] = 1;
+                    encoding[5] = 1;
+                }
+            }
+            
         }
         
         /*--------------------Multiply Instructions------------------------------*/
@@ -728,6 +773,7 @@ public class EncodeInstruction
         {
             if(mnemonic.substring(0, 3).equalsIgnoreCase(dpiMnemonics[i]))
             {
+                System.out.println("i="+i);
                 return i;
             }
             
@@ -741,16 +787,24 @@ public class EncodeInstruction
         {
             this.setConditionCode(mnemonic.substring(3, 5), encoding);
         }
-        
+        System.out.println("opcode="+opCode);
         this.encodePositions(opCode, 21, 24, encoding);
     }
     
     private void encodePositions(int number,int posS,int posE,int[] encoding)
     {
         String bin = Integer.toBinaryString(number);
-        for(int i=posE-posS,j=posS;i>=posS;i--,j++)
+        System.out.println("In encodePositions "+bin);
+        System.out.println("start"+posE);
+        while(bin.length()<=posE-posS)
         {
-            encoding[posS] = Integer.parseInt(bin.charAt(i)+"");
+            bin = 0+bin;
+        }
+        for(int i=posE-posS,j=posS;i>=0;i--,j++)
+        {
+            System.out.println("h"+j);
+            encoding[j] = Integer.parseInt(bin.charAt(i)+"");
+            System.out.println(encoding[j]);
         }
     }
     
