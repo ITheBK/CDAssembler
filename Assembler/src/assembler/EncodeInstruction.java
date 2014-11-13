@@ -89,6 +89,10 @@ public class EncodeInstruction
             this.encodeDPI(mnemonic, dpiNum, encoding);
             encoding[26]=encoding[27]=0;
             String ops[] = operands.split(",");
+            if(mnemonic.trim().endsWith("s")||mnemonic.trim().endsWith("S"))
+            {
+                encoding[20]=1;
+            }
             if(ops.length == 3 && ops[2].trim().startsWith("#"))//2 registers with 32 bit immediate
             {
                 String l[] = ops[2].split("\\W+");
