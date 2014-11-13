@@ -3,3 +3,4 @@
 #Netbeans
 *.properties
 *.xml
+/AssemblerOld/build/
