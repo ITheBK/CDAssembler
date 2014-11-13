@@ -681,6 +681,7 @@ public class EncodeInstruction
         {
             regNum = 0+regNum;
         }
+        
         System.out.println(regNum);
         for(int i=pos;i<pos+4;i++)
         {
