@@ -406,7 +406,7 @@ public class EncodeInstruction
             if(ops[0].contains("!"))
                 encoding[21]=1;
             this.encodeRegisterBinary(ops[0].substring(0,3), 16, encoding);
-            this.encodeRegisterListBinary(ops[1].substring(1,ops[1].length()-1),encoding);
+            this.encodeRegisterListBinary(ops[1].substring(1,ops[1].length())+","+ops[2].substring(0,ops[2].length()-1),encoding);
             encoding[27]=1;
         }
         /*---------------------------------STATUS REGISTER TO GENERAL REGISTER TRANSFER INSTRUCTIONS------------------------*/
@@ -440,11 +440,13 @@ public class EncodeInstruction
             String ops[] = operands.split(",");
             if(ops[0].matches("cpsr_.*")||ops[0].matches("CPSR_.*"))
             {
+                
                 encoding[22]=0;
                 String field[]=ops[0].split("_");
-                if(field[1]=="c")
+                //System.out.println("in msr "+field[1]);
+                if(field[1].equalsIgnoreCase("c"))
                     encoding[16]=1;
-                if(field[1]=="f")
+                if(field[1].equalsIgnoreCase("f"))
                     encoding[19]=1;
             }
             if(ops[0].matches("spsr_.*")||ops[0].matches("SPSR_.*"))
@@ -745,8 +747,10 @@ public class EncodeInstruction
     public void encodeRegisterListBinary(String list, int[] encoding) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         String regs[]=list.split(",");
+        //System.out.println("in reglist "+list);
         for(int i=0;i<regs.length;i++)
         {
+            
             if(regs[i].contains("-"))
             {
                 String reg1[]=regs[0].split("-");
